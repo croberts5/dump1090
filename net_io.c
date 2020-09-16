@@ -1368,10 +1368,12 @@ char *generateAircraftJson(const char *url_path, int *len) {
 
     p = safe_snprintf(p, end,
                        "{ \"now\" : %.1f,\n"
+                       "  \"device_id\" : %u,\n"
                        "  \"messages\" : %u,\n"
                        "  \"aircraft\" : [",
                        now / 1000.0,
-                       Modes.stats_current.messages_total + Modes.stats_alltime.messages_total);
+                       Modes.device_id,
+                       Modes.stats_current.messages_total);
 
     for (a = Modes.aircrafts; a; a = a->next) {
         if (!a->reliable) {
@@ -1739,6 +1741,23 @@ void writeJsonToFile(const char *file, char * (*generator) (const char *,int*))
 #endif
 }
 
+// Write JSON to stdout
+void writeJsonToStdout(char * (*generator) (const char *,int*))
+{
+#ifndef _WIN32
+    char pathbuf[PATH_MAX];
+    int len = 0;
+    char *content;
+
+    content = generator(pathbuf, &len);
+
+    /* Also print to stdout */
+    printf("%s", content);
+    fflush(stdout);
+    free(content);
+    return;
+#endif
+}
 
 //
 //=========================================================================

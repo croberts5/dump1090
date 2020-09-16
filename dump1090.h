@@ -370,9 +370,11 @@ struct {                             // Internal state
     int   metric;                    // Use metric units
     int   use_gnss;                  // Use GNSS altitudes with H suffix ("HAE", though it isn't always) when available
     int   mlat;                      // Use Beast ascii format for raw data output, i.e. @...; iso *...;
-    char *json_dir;                  // Path to json base directory, or NULL not to write json.
+    char  *json_dir;                 // Path to json base directory, or NULL not to write json.
+    int   device_id;                 // ID used to uniquely identify the data source
     uint64_t json_interval;          // Interval between rewriting the json aircraft file, in milliseconds; also the advertised map refresh interval
     int   json_location_accuracy;    // Accuracy of location metadata: 0=none, 1=approx, 2=exact
+    int   json_stdout;               // Enable JSON output to stdout
 
     int   json_aircraft_history_next;
     struct {

@@ -121,6 +121,7 @@ void modesInitConfig(void) {
     Modes.json_location_accuracy  = 1;
     Modes.maxRange                = 1852 * 300; // 300NM default max range
     Modes.mode_ac_auto            = 1;
+    Modes.device_id               = 0;
 
     sdrInitConfig();
 }
@@ -326,6 +327,7 @@ void showHelp(void) {
 "--show-only <addr>       Show only messages from the given ICAO on stdout\n"
 "--write-json <dir>       Periodically write json output to <dir> (for serving by a separate webserver)\n"
 "--write-json-every <t>   Write json output every t seconds (default 1)\n"
+"--write-json-stdout      Write json output to stdout as messages are received\n"
 "--json-location-accuracy <n>  Accuracy of receiver location in json metadata: 0=no location, 1=approximate, 2=exact\n"
 "--dcfilter               Apply a 1Hz DC filter to input data (requires more CPU)\n"
 "--help                   Show this help\n"
@@ -427,6 +429,12 @@ void backgroundTasks(void) {
         writeJsonToFile("aircraft.json", generateAircraftJson);
         next_json = now + Modes.json_interval;
     }
+
+     if (Modes.json_stdout && now >= next_json) {
+            writeJsonToStdout(generateAircraftJson);
+	    Modes.stats_current.messages_total = 0;
+            next_json = now + Modes.json_interval;
+     }
 
     if (now >= next_history) {
         int rewrite_receiver_json = (Modes.json_dir && Modes.json_aircraft_history[HISTORY_SIZE-1].content == NULL);
@@ -602,6 +610,11 @@ int main(int argc, char **argv) {
             Modes.json_interval = (uint64_t)(1000 * atof(argv[++j]));
             if (Modes.json_interval < 100) // 0.1s
                 Modes.json_interval = 100;
+        } else if (!strcmp(argv[j], "--write-json-stdout")) {
+            Modes.json_stdout = 1;
+            Modes.quiet = 1;
+        } else if (!strcmp(argv[j], "--device-id") && more) {
+            Modes.device_id = atoi(argv[++j]);
         } else if (!strcmp(argv[j], "--json-location-accuracy") && more) {
             Modes.json_location_accuracy = atoi(argv[++j]);
 #endif
